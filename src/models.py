@@ -289,4 +289,24 @@ class BiCrossAttCPI(nn.Module):
         # Pad node features to (B, max_atoms, D)
         node_list = [node_feats[compound_batch == i] for i in range(B)]
         max_atoms = max(1, max(len(n) for n in node_list)) if node_list else 1
-        padded = torch.zeros(B, max_atoms, node_feats.shape[-1
+        padded = torch.zeros(B, max_atoms, node_feats.shape[-1],
+                             device=compound_x.device)
+        for i, nodes in enumerate(node_list):
+            if len(nodes) > 0:
+                padded[i, :len(nodes), :] = nodes
+
+        if protein_embeddings.dim() == 2:
+            protein_embeddings = protein_embeddings.unsqueeze(1)
+
+        # --- Cross-attention ---
+        if self.use_cross_attention:
+            uc, up = self.cross_attention(
+                padded, protein_embeddings,
+                use_c2p=self.use_c2p_attention,
+                use_p2c=self.use_p2c_attention)
+        else:
+            uc, up = padded, protein_embeddings
+
+        # --- Fusion + classification ---
+        combined = torch.cat([uc.mean(1), up.mean(1)], dim=1)
+        return self.classifier(combined)
