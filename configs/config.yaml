@@ -1,0 +1,48 @@
+# Configuration
+
+# Data
+data:
+  path: "data/data.txt"
+  dataset: "Human"  # or "C. elegans"
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  seed: 42
+
+# Model
+model:
+  compound_input_dim: 87
+  protein_embed_dim: 640       # ESM-2 150M embedding dimension
+  cross_attn_heads: 8
+  cross_attn_dropout: 0.1
+  num_classes: 2
+  dropout_rate: 0.2
+  use_compound_gnn: true
+  use_cross_attention: true
+  use_c2p_attention: true
+  use_p2c_attention: true
+  gnn:
+    growth_rate: 32
+    block_config: [8, 8, 8]
+    bn_sizes: [2, 2, 2]
+
+# Training
+training:
+  epochs: 100
+  batch_size: 16
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  optimizer: "AdamW"
+  loss: "CrossEntropyLoss"
+
+# ESM-2
+esm:
+  model_name: "esm2_t30_150M_UR50D"
+  repr_layer: 30
+  batch_size: 1
+  device: "cpu"
+
+# Output
+output:
+  dir: "outputs"
+  model_name: "BiCrossAtt-CPI"
